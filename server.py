@@ -19,6 +19,7 @@ def accumulator(container, key, item):
         container[key] = item
     
 def construct_individual_key(business, date):
+    # Can hash here in a production context to avoid key collisions
     return f'{business}_{date}'
 
 # Function to construct a cache key based on the query parameters
@@ -109,6 +110,12 @@ class Emissions(Resource):
                     start_date = end_date = date
 
             ranges.append((start_date, end_date))
+
+            # At this point it should be noted that there is some duplicate work done here, e.g.
+            # (Business A, 2022-02-12), (Business B, 2022-02-04)
+            # range dates [(2022-02-01, 2022-02-28), (2022-04-01, 2022-04-30)]
+            # This program will search both date ranges for both businesses even though they
+            # only have rows in February.
 
             # For uncached date ranges, query DB
             for date in ranges:
